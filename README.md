@@ -1,6 +1,11 @@
 Clément GASPARD
 # JohnLemmonGame
 
+## Introduction
+
+Le Projet est décrit ci-dessous de manière détaillée avec les étapes qui ont été réalisé pour être mené à bien.  
+En complément de cette documentation, dans le dossier *"Assets/Scripts"* se trouvent les scripts de toutes les classes utilisées dans ce projet commentées précisement (sauf *LightFLicker.cs* qui permet de varier l'intensité lumineuse des bougies aléatoirement et qui a été récupéré d'un projet demo).
+
 ## I) Description du Scénario
 
 ### A) Explications du Scénario
@@ -20,11 +25,27 @@ __Commandes du jeu__ :
 
 ## II) Explication concept de Unity
 
+Le concept de Unity que nous avons choisi d'expliquer ici est le lancer de rayon, pour mieux comprendre son fonctionnement, voici un extrait de la classe *Observer* :
+```cs
+[...]
+
+Ray ray = new Ray(transform.position, direction); // Création d'une instance de Rayon par l'utilisation du constructeur (origine, direction)
+RaycastHit raycastHit; // Définition d'un objet de type "Raycasthit" dans le but de connnaître l'objet touché par le rayon
+
+if (Physics.Raycast(ray, out raycastHit)) // Si le rayon a touché un objet, le raycastHit nous donne l'objet touché
+{
+    if (raycastHit.collider.transform == player) // Si l'objet touché par le rayon est le joueur
+    {
+        gameEnding.CaughtPlayer(); // Alors, appel de la fonction CaughtPlayer() du Script GameEnding pour dire que le joueur a été attrapé
+    }
+}
+```
+
 ## III) Description du Projet
 
 ### A) Etapes de réalisation du Projet
 
-- *1ère Etape* : Animation de marche du Personnage
+- *1ère Etape* : Animation de marche du Personnage (Classe __PlayerMovement__)
 
 - *2ème Etape* : Ecriture du Script pour le Mouvement du personnage à partir du nouveau système de gestion de commande de Unity.
 
@@ -86,14 +107,14 @@ __Commandes du jeu__ :
 
 - *11ème Etape* : Création d'un Canvas de Menu Pause (Le joueur peut mettre en pause, recommencer au début, ou quitter le jeu)
 
-- *12ème étape* : Adaptation du projet pour multi-platerforme : 
+- *12ème Etape* : Adaptation du projet pour multi-platerforme : 
     * Ajout d'un joystick virtuel pour pouvoir jouer au jeu depuis un appareil mobile ou un ordinateur tactile.
 
     * Ajout au Menu pause d'une possibilité de choisir son système de contrôle du joueur (Soit clavier, soit Manette de jeu, soit interface tactile)
 
     * Adaptation du niveau de qualité du jeu en fonction des types d'appareil (Haute qualité pour un PC Windows, qualité moyenne avec quelques sacrifices pour le téléphone Android)
 
-- *13 Etape* : Exportation du projet : 
+- *13ème Etape* : Exportation du projet : 
     * Création d'un executable pour Windows (x64)
 
     * Création d'un apk pour téléphone ou tablette Android (Attention le framerate de l'application dépend énormément de la puissance graphique de l'appareil Android utilisé)
@@ -103,13 +124,15 @@ __Commandes du jeu__ :
 ### B) Arborescence du Projet
 
 ```bash
+Build # Fichiers executables pour les différentes plateforme
+├───Windows # Application .exe pour Windows (x64)
+└───Android # Application .apk à installer sur un téléphone portable ou une tablette Android
+
+Assets
 ├───Animation  
 │   ├───Animation # Animations pures d'un Objet 3D
 │   └───Animators # Machines à états d'utilisation des Animations associées à un GameObject
 ├───Audio  #Fichiers Audios utilisés dans le Projet
-├───Build # Fichiers executables pour les différentes plateforme
-│   ├───Windows # Application .exe pour Windows (x64)
-│   └───Android # Application .apk à installer sur un téléphone portable ou une tablette Android
 ├───Gizmos  
 │   └───Cinemachine
 ├───Materials # Matériaux des différents Objets 3D du Projet (associés aux textures)
