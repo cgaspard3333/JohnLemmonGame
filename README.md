@@ -12,7 +12,7 @@ En complément de cette documentation, dans le dossier *"Assets/Scripts"* se tro
 Le joueur se trouve dans un environnement type Château Hanté, il doit arriver à sortir du manoir sans se faire voir par les différents ennemis du Château (des ennemis statiques : les Gargouilles et des ennemis mobiles : les Fantômes).  
 Tout cela doit se passer dans un environnement 3D vivant avec une spacialisation sonore réussie pour une bonne immersion du joueur.  
 On fait le choix d'utiliser une vue aérienne accrochée au personnage avec un seul angle de vue (pas de rotation de la caméra).  
-On fait aussi le choix de faire déplacer le personnage grâce aux touches d'un clavier , aux joystick d'une manette ou un joystick virtuel. (On aurait pu utiliser un système de clic à l'endroit ou on veut que le personnage aille, mais cela n'est pas du tout pratique avec le type de jeu où l'on veut eviter de se faire voir par des ennemis)
+On fait aussi le choix de faire déplacer le personnage grâce aux touches d'un clavier, à un joystick d'une manette ou à un joystick virtuel. (On aurait pu utiliser un système de clic à l'endroit où l'on souhaite que le personnage aille, mais cela n'est pas du tout pratique avec le type de jeu que nous avons défini où l'on veut éviter de se faire voir par des ennemis)
 On utilise aussi un menu Pause pour pouvoir quitter le jeu, le recommencer du début ou changer le type de commande (Clavier, Manette, Tactile)
 
 __Commandes du jeu__ : 
@@ -38,7 +38,62 @@ https://user-images.githubusercontent.com/28164044/147893238-74b5e307-a993-4137-
 
 ## II) Explication concept de Unity
 
-Le concept de Unity que nous avons choisi d'expliquer ici est le lancer de rayon, pour mieux comprendre son fonctionnement, voici un extrait de la classe __Observer__ :
+Le concept de Unity que nous avons choisi d'expliquer ici est le lancer de rayon, autrement appelé méthode __Raycast__.  
+
+Dans Unity, il est possible de vérifier s'il existe des __collisions__ (*Collider*) le long du chemin d'une ligne partant d'un point. Cette "ligne" partant d'un point précis s'appelle un __rayon__ (*Ray*). La recherche de __collisions__ le long de ce rayon s'appelle un __Raycast__.  
+- La __collision__ est définie ici comme un objet obstruant le passage d'un __rayon__. 
+- Le __rayon__ a besoin d'une __origine__ et d'une __direction__. 
+
+Dans Unity, pour créer un __rayon__, on utilise un constructeur ayant comme paramètres une orgine et une direction : 
+
+```cs
+Ray rayon = new Ray(origine, direction)
+```
+
+Il existe de nombreuses méthodes de __Raycast__ différentes dans Unity, mais elles ont toutes deux choses en commun : 
+1. Elles doivent définir le __rayon__ le long duquel le __Raycast__ se produit
+1. Elles doivent définir des restrictions sur le type de __collisions__ que le __Raycast__ doit détecter.
+
+La méthode de __Raycast__ que l'on utilise dans notre projet renvoie un booléen qui est vrai quand il a touché quelque chose et faux quand il n'a rien touché. 
+Comme elle renvoie un booléen, il est très pratique de mettre la méthode __Raycast__ dans une instruction if. Le bloc de code de l'instruction if ne sera donc exécuté que si le __Raycast__ a touché quelque chose :
+
+```cs
+Ray rayon = new Ray(origine, direction);
+
+if(Physics.Raycast(rayon)){/*Code executé si le rayon recontre un objet*/}
+```
+
+Pour l'instant, nous n'avons défini aucune restriction sur les objets qui peuvent être touchés. Dans notre projet, nous avons besoin des informations de ce qui est touché par le __Raycast__, afin que l'on puisse vérifier s'il s'agit du personnage du joueur.
+
+Pour cela nous allons donc utiliser une méthode de __Raycast__ différente indiquant en sortie "out" les informations définissant l'objet qui a été touché par le rayon. Ce paramètre de sortie est d'un type "*RaycastHit*" :
+
+```cs
+Ray rayon = new Ray(origine, direction);
+RaycastHit InfosObjetTouche;
+
+if(Physics.Raycast(rayon, out InfosObjetTouche)){/*Code executé si le rayon recontre un objet*/}
+```
+
+On vérifie juste après si l'objet touché est bien celui voulu, on met donc en place une __restriction__ : 
+
+```cs
+Ray rayon = new Ray(origine, direction);
+RaycastHit InfosObjetTouche;
+Transform ObjetQuOnVeutToucher;
+
+if(Physics.Raycast(rayon, out typeObjetTouche))
+{
+    if(InfosObjetTouche.collider.transform == ObjetQuOnVeutToucher)
+    {
+        /*Code executé lorsque l'objet voulu est touché*/
+    }
+}
+```
+Grâce à la méthode de __Raycast__ explicitée ici, on peut donc vérifier si un objet est touché par un des rayons du __Raycast__, stocker les informations le definissant et verifier par la suite si celui-ci est bien l'objet voulu.
+
+Nous nous en servons donc dans notre projet pour vérifier si le personnage de notre joueur entre dans le champ de vision de notre ennemi.
+
+Pour voir un exemple réel de son fonctionnement et comprendre comment nous avons avons utilisé cette méthode dans notre code, voici un extrait de la classe __Observer__ :
 ```cs
 [...]
 if (m_IsPlayerInRange) // Si le joueur est dans la zone de champ de vision de la Gargouille
@@ -64,20 +119,20 @@ if (m_IsPlayerInRange) // Si le joueur est dans la zone de champ de vision de la
 
 ### A) Etapes de réalisation du Projet
 
-- *1ère Etape* : Animation de marche du Personnage (Classe __PlayerMovement__)
+- *1ère Etape* : Animation de marche du Personnage. (Classe __PlayerMovement__)
 
 - *2ème Etape* : Ecriture du Script pour le Mouvement du personnage à partir du nouveau système de gestion de commande de Unity. (Classe __PlayerMovement__)
 
 - *3ème Etape* : Mise en place de l'Environnement de la scène : 
-    * Gestion de l'Illumination de la scène 
+    * Gestion de l'Illumination de la scène;
 
-    * Création à la main de l'animation de la chaise volante (dans la salle de gauche au démarrage du jeu)
+    * Création à la main de l'animation de la chaise volante (dans la salle de gauche au démarrage du jeu, *voir vidéo démo*);
 
-    * Création à la main de l'animation de la sphère volante lumineuse dans la salle à manger (pièce avec la cheminée et la grande table)
+    * Création à la main de l'animation de la sphère volante lumineuse dans la salle à manger (pièce avec la cheminée et la grande table, *voir vidéo démo*).
 
-- *4ème Etape* : Gestion de la Caméra à partir du plug-in Cinemachine (attache de la camera au personnage principal)
+- *4ème Etape* : Gestion de la Caméra à partir du plug-in Cinemachine (attache de la camera au personnage principal).
 
-- *5ème Etape* : Ajout des effets de post-processing à la camera : 
+- *5ème Etape* : Ajout des effets de post-processing à la caméra : 
     * Anti-aliasing, 
 
     * Gradient de Couleur,
@@ -98,69 +153,69 @@ if (m_IsPlayerInRange) // Si le joueur est dans la zone de champ de vision de la
     * Mise en place du Canvas de fin du jeu avec l'animation associée (le joueur perd, le joueur gagne).
 
 - *7ème Etape* : Création des ennemis statiques : 
-    * Création du Prefab avec la zone de détection du personnage (champ de vision de la Gargouille)
+    * Création du Prefab avec la zone de détection du personnage (champ de vision de la Gargouille);
     
-    * Animation de la Gargouille,
+    * Animation de la Gargouille;
 
-    * Ecriture de la fonction de détection du Personnage joueur lorsqu'il se trouve dans le champ de vision d'un ennemi grâce au lancer de rayons. (Classe __Observer__)
+    * Ecriture de la fonction de détection du Personnage joueur lorsqu'il se trouve dans le champ de vision d'un ennemi grâce au lancer de rayons (Raycast). (Classe __Observer__)
 
 - *8ème Etape* : Génération du NavMesh qui détermine la carte virtuelle où peuvent bouger les ennemis mobiles
 
 - *9ème Etape* : Création des ennemis mobiles :
-    * Création du Prefab avec Collider, zone de détection du personnage (champ de vision du fantôme),
+    * Création du Prefab avec Collider, zone de détection du personnage (champ de vision du fantôme);
 
-    * Animation du Fantôme,
+    * Animation du Fantôme;
 
     * Ecriture du script de mouvement des fantômes grâce au NavMeshAgent qui permet de déplacer l'ennemi dans le NavMesh généré à l'étape précédente. (Uilisation de passage par des points de contrôle) (Classe __WaypointPatrol__).
 
 - *10ème Etape* : Audio Spatial :
-    * Mise en place de l'audio d'ambiance qui n'est pas 3D et qui est au même niveau de volume où que se trouve le personnage dans la scène
+    * Mise en place de l'audio d'ambiance qui n'est pas 3D et qui est au même niveau de volume quel que soit l'endroit où se trouve le personnage dans la scène;
 
-    * De la même manière, mise en place des musiques de fin du jeu (le joueur perd, le joueur gagne)
+    * De la même manière, mise en place des musiques de fin du jeu (le joueur perd, le joueur gagne);
 
-    * Ajout du son des pieds du joueur quand il se déplace et synchronisation avec l'animation de marche du personnage
+    * Ajout du son des pieds du joueur quand il se déplace et synchronisation avec l'animation de marche du personnage;
 
-    * Ajout des différentes sources Audios 3D aux éléments du jeu (Chandelles sur les murs, fantômes) et ajustement des paramètres d'Audio 3D pour faire en sorte que le son diminue avec la distance et puisse être localisable avec un son binaural (casque audio) ou un système audio multicanal (home cinéma multi-enceintes).
+    * Ajout des différentes sources Audios 3D aux éléments du jeu (Chandelles sur les murs, fantômes) et ajustement des paramètres d'Audio 3D pour faire en sorte que le son diminue avec la distance et puisse être localisable avec un son binaural (casque audio) ou un système audio multicanal (home cinéma multi-enceintes);
 
-    * Création de l'AudioListener et écriture d'un script permettant sa fixation au niveau de la tête, entre les oreilles du personnage sans qu'il ne soit affecté par la rotation de celui-ci. (Classe __AudioController_norotation__)
+    * Création de l'AudioListener et écriture d'un script permettant sa fixation au niveau de la tête, entre les oreilles du personnage sans qu'il ne soit affecté par la rotation de celui-ci. (Classe __AudioController_norotation__).
 
-- *11ème Etape* : Création d'un Canvas de Menu Pause (Le joueur peut mettre en pause, recommencer au début, ou quitter le jeu) (Classe __PauseMenu__)
+- *11ème Etape* : Création d'un Canvas de Menu Pause (Le joueur peut mettre en pause, recommencer au début, ou quitter le jeu). (Classe __PauseMenu__)
 
 - *12ème Etape* : Adaptation du projet pour multi-platerforme : 
-    * Ajout d'un joystick virtuel pour pouvoir jouer au jeu depuis un appareil mobile ou un ordinateur tactile. (Classe __Touch__)
+    * Ajout d'un joystick virtuel pour pouvoir jouer au jeu depuis un appareil mobile ou un ordinateur tactile (Classe __Touch__);
 
-    * Ajout au Menu pause d'une possibilité de choisir son système de contrôle du joueur (Soit clavier, soit Manette de jeu, soit interface tactile) (Classe __PauseMenu__ et __Touch__)
+    * Ajout au Menu pause d'une possibilité de choisir son système de contrôle du joueur (Soit clavier, soit Manette de jeu, soit interface tactile) (Classe __PauseMenu__ et __Touch__);
 
-    * Adaptation du niveau de qualité du jeu en fonction des types d'appareil (Haute qualité pour un PC Windows, qualité moyenne avec quelques sacrifices pour le téléphone Android)
+    * Adaptation du niveau de qualité du jeu en fonction des types d'appareil (Haute qualité pour un PC Windows, qualité moyenne avec quelques sacrifices pour le téléphone Android).
 
 - *13ème Etape* : Exportation du projet : 
-    * Création d'un executable pour Windows (x64)
+    * Création d'un executable pour Windows (x64);
 
-    * Création d'un apk pour téléphone ou tablette Android (Attention le framerate de l'application dépend énormément de la puissance graphique de l'appareil Android utilisé)
+    * Création d'un apk pour téléphone ou tablette Android (Attention le framerate de l'application dépend énormément de la puissance graphique de l'appareil Android utilisé).
 
 ### B) Classes du Projet
 
 - __AudioController_norotation__ :  
-*Classe permettant de mettre l'Audio Listener au bon endroit au niveau des oreilles du personnage sans que celui-ci ne tourne en même temps que le personnage (cela evite de se retrouver avec l'emplacement 3D des sons inversés lorsque le personnage fait face au joueur)*
+*Classe permettant de mettre l'Audio Listener au bon endroit au niveau des oreilles du personnage sans que celui-ci ne tourne en même temps que le personnage (cela evite de se retrouver avec l'emplacement 3D des sons inversés lorsque le personnage fait face au joueur).*
 
 - __GameEnding__ :  
 *Classe permettant de gérer les fins du jeu et d'afficher en conséquence l'animation de fin correspondante.*
 *Les deux fins possibles sont :*
-    - *Le joueur se fait voir (attraper) par un ennemi et perd (le jeu se reset et recommence au début)*
+    - *Le joueur se fait voir (attraper) par un ennemi et perd (le jeu se reset et recommence au début);*
 
-    - *Le joueur gagne, et le jeu se ferme*  
+    - *Le joueur gagne, et le jeu se ferme.*  
 
 - __Observer__ :  
 *Classe permettant de gérer par lancers de rayons la détection du personnage lorsqu'il est dans le champ de vision des ennemis (Gargouilles et Fantômes).*
 
 - __PauseMenu__ :  
-*Classe permettant de mettre le jeu en Pause et d'afficher et d'interagir avec le Menu Pause*
+*Classe permettant de mettre le jeu en Pause et d'afficher et d'interagir avec le Menu Pause.*
 
 - __PlayerMovement__ :  
 *Classe permettant de gérer les mouvements du personnages par le joueur (à partir de la nouvelle gestion des commandes de Unity) ainsi que de gérer l'animation de marche du personnage lorsqu'il se déplace et le son allant avec.*
 
 - __Touch__ :  
-*Classe permettant de gérer l'utilisation des commandes tactiles pour un PC tactile ou un appareil Android (elle permet d'activer ou déstactiver l'affichage du joystick numérique)*
+*Classe permettant de gérer l'utilisation des commandes tactiles pour un PC tactile ou un appareil Android (elle permet d'activer ou déstactiver l'affichage du joystick numérique).*
 
 - __WaypointPatrol__ :  
 *Classe permettant de gérer les différents points de contrôles (Waypoints) par lesquels doivent passer les ennemis mobiles (Fantômes). Lorsque qu'un enememi a atteint le point de contrôle par lequel il devait passer, alors il passe au point suivant.*  
